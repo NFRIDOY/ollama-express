@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  express-api:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - OLLAMA_HOST=http://ollama-service:11434
+      - MODEL_NAME=gemma4
+    depends_on:
+      - ollama-service
+
+  ollama-service:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    # Note: If deploying to a GPU machine, you must add deploy/resources reservation here
+
+volumes:
+  ollama_data:
