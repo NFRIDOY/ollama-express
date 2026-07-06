@@ -147,7 +147,29 @@ app.post('/api/chat/stream', async (req, res) => {
     }
 });
 
-app.listen(PORT, () => {
+// Function to verify and auto-pull the model if missing from local Ollama service
+async function ensureModelExists() {
+    try {
+        console.log(`Checking if model '${MODEL_NAME}' is available on Ollama...`);
+        const response = await ollama.list();
+        const models = response.models || [];
+        const modelExists = models.some(m => m.name === MODEL_NAME || m.model === MODEL_NAME);
+
+        if (!modelExists) {
+            console.log(`Model '${MODEL_NAME}' not found locally. Initiating pull...`);
+            await ollama.pull({ model: MODEL_NAME });
+            console.log(`Successfully pulled model '${MODEL_NAME}'!`);
+        } else {
+            console.log(`Model '${MODEL_NAME}' is ready.`);
+        }
+    } catch (error) {
+        console.warn(`Warning: Failed to verify/pull model '${MODEL_NAME}' automatically:`, error.message);
+        console.warn('Please ensure Ollama is running and accessible.');
+    }
+}
+
+app.listen(PORT, async () => {
     console.log(`Server running on http://localhost:${PORT}`);
     console.log(`API Documentation available at http://localhost:${PORT}/api-docs`);
+    await ensureModelExists();
 });
