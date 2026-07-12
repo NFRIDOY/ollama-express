@@ -12,7 +12,12 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 9000;
 
-app.use(cors());
+app.use(cors({
+    origin: '*', // allow all origins
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(bodyParser.json());
 
 // Initialize Ollama pointing to your environment's host
@@ -151,6 +156,41 @@ app.post('/api/chat/stream', async (req, res) => {
         res.end();
     }
 });
+
+/**
+ * @openapi
+ * /api/hi:
+ *   get:
+ *     summary: Simple test endpoint
+ *     description: Returns a hello message with the provided prompt.
+ *     parameters:
+ *       - in: query
+ *         name: prompt
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: "Ping"
+ *     responses:
+ *       200:
+ *         description: Successfully returned hello message
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 reply:
+ *                   type: string
+ *       400:
+ *         description: Missing or invalid prompt parameter
+ */
+app.get('/api/hi', async (req, res) => {
+    const { prompt } = req.query;
+    if (!prompt) return res.status(400).json({ error: 'Prompt is required' });
+
+    res.json({ reply: `Hello! You sent the prompt: ${prompt}` });
+});
+
+
 
 // Function to verify and auto-pull the model if missing from local Ollama service
 async function ensureModelExists() {
