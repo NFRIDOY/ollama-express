@@ -2,21 +2,13 @@ services:
   express-api:
     build: .
     ports:
-      - "8080:8080"
+      - "9000:9000"
     environment:
-      - PORT=8080
-      - OLLAMA_HOST=http://ollama-service:11434
-      - MODEL_NAME=gemma4:e2b
-    depends_on:
-      - ollama-service
-
-  ollama-service:
-    image: ollama/ollama:latest
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-    # Note: If deploying to a GPU machine, you must add deploy/resources reservation here
-
-volumes:
-  ollama_data:
+      - PORT=9000
+      # if server is running on Docker
+      - OLLAMA_HOST=http://host.docker.internal:11434
+      # if it's running on host machine
+      # - OLLAMA_HOST=http://localhost:11434
+      # if it's running on docker and we want to use it as a service
+      # - OLLAMA_HOST=http://ollama-service:11434
+      - MODEL_NAME=gemma4
