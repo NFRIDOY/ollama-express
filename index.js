@@ -36,9 +36,13 @@ const swaggerOptions = {
         },
         servers: [
             {
-                url: `http://localhost:${PORT}`,
-                description: 'Local development server',
+                url: '/',
+                description: 'Default relative server',
             },
+            // {
+            //     url: `http://localhost:${PORT}`,
+            //     description: 'Local development server',
+            // },
         ],
     },
     // Path to the API docs (where your JSDoc comments are located)
