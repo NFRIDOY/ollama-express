@@ -324,8 +324,8 @@ app.post('/api/chat/stream', async (req, res) => {
  *         description: Missing or invalid prompt parameter
  */
 app.get('/api/hi', async (req, res) => {
-    const { prompt } = req.query;
-    if (!prompt) return res.status(400).json({ error: 'Prompt is required' });
+    const prompt = "hi";
+    // if (!prompt) return res.status(400).json({ error: 'Prompt is required' });
 
     res.json({ reply: `Hello! You sent the prompt: ${prompt}` });
 });
