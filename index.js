@@ -41,6 +41,19 @@ app.use(cors({
 
 app.use(bodyParser.json());
 
+// add response timer
+const responseTimer = (req, res, next) => {
+    const start = Date.now();
+    res.on('finish', () => {
+        const duration = Date.now() - start;
+        console.log(`${req.method} ${req.url} completed in ${duration}ms`);
+        // res.duration = duration;
+        // res.body.duration = duration;
+    });
+    next();
+}
+app.use(responseTimer);
+
 // Initialize Ollama pointing to your environment's host
 const ollama = new Ollama({ host: process.env.OLLAMA_HOST || 'http://127.0.0.1:11434' });
 const MODEL_NAME = process.env.MODEL_NAME || 'gemma4';
@@ -131,6 +144,9 @@ app.post('/api/chat', apiKeyAuth, async (req, res) => {
     req.setTimeout(SERVER_TIMEOUT);
     res.setTimeout(SERVER_TIMEOUT);
 
+    // start timer
+    let startTime = Date.now();
+
     try {
         const response = await ollama.chat({
             model: MODEL_NAME,
@@ -138,7 +154,9 @@ app.post('/api/chat', apiKeyAuth, async (req, res) => {
         });
         console.log("AI: ", response);
         console.log("AI message: ", response.message.content);
-        res.json({ reply: (response.message.content) });
+        let duration = Date.now() - startTime;
+        console.log("Duration (sec): ", duration / 1000);
+        res.json({ reply: (response.message.content), duration: (duration / 1000) });
         // res.json({ reply: marked.parse(response.message.content) });
     } catch (error) {
         console.error('Ollama Error:', error);
