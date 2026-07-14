@@ -15,6 +15,8 @@ const PORT = process.env.PORT || 9000;
 const SERVER_TIMEOUT = 120000; // 120 seconds for long AI responses
 
 const allowedOrigins = [
+    'http://orion-ai-nine-orpin.vercel.app',
+    'https://orion-ai-nine-orpin.vercel.app',
     'http://yearningly-stemlike-shavon.ngrok-free.dev',
     'https://yearningly-stemlike-shavon.ngrok-free.dev',
     'http://localhost:9050',
