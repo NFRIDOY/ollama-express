@@ -13,24 +13,24 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 9000;
 
-app.use(cors({
-    // origin: '*', // allow all origins
-    origin: [
-        '*',
-        'http://localhost:3000',
-        'https://h1qxq8l0-9000.asse.devtunnels.ms'
-    ],
-    methods: ['GET', 'POST', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'x-api-key']
-}));
+const allowedOrigins = [
+    'http://localhost:3000',
+    'https://localhost:3000',
+    'https://h1qxq8l0-9000.asse.devtunnels.ms'
+];
 
-app.use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", "http://localhost:3000");
-    res.header("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
-    res.header("Access-Control-Allow-Headers", "Content-Type, x-api-key");
-    if (req.method === "OPTIONS") return res.sendStatus(204);
-    next();
-});
+app.use(cors({
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(null, false);
+        }
+    },
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'x-api-key'],
+    credentials: true
+}));
 
 app.use(bodyParser.json());
 
