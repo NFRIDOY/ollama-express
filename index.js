@@ -12,7 +12,7 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 9000;
-const SERVER_TIMEOUT = 120000; // 120 seconds for long AI responses
+const SERVER_TIMEOUT = 60 * 5 * 1000; // 5 min for long AI responses
 
 const allowedOrigins = [
     'http://orion-ai-nine-orpin.vercel.app',
