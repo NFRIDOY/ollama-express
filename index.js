@@ -330,6 +330,32 @@ app.get('/api/hi', async (req, res) => {
     res.json({ reply: `Hello! You sent the prompt: ${prompt}` });
 });
 
+/**
+ * @openapi
+ * /api/health:
+ *   get:
+ *     summary: Health check endpoint
+ *     description: Returns the health status of the server.
+ *     responses:
+ *       200:
+ *         description: Successfully returned hello message
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 reply:
+ *                   type: string
+ *       400:
+ *         description: Missing or invalid prompt parameter
+ */
+app.get('/api/health', async (req, res) => {
+    res.json({
+        status: "ok",
+    });
+});
+
+
 
 
 // Function to verify and auto-pull the model if missing from local Ollama service
