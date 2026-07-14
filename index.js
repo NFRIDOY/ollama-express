@@ -12,6 +12,7 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 9000;
+const SERVER_TIMEOUT = 120000; // 120 seconds for long AI responses
 
 const allowedOrigins = [
     'http://localhost:3000',
@@ -100,7 +101,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
  *             properties:
  *               prompt:
  *                 type: string
- *                 example: "Why is the sky blue?"
+ *                 example: "what is the capital of Bangladesh?"
  *     responses:
  *       200:
  *         description: Successfully generated response from Gemma 4
@@ -120,12 +121,19 @@ app.post('/api/chat', apiKeyAuth, async (req, res) => {
     const { prompt } = req.body;
     if (!prompt) return res.status(400).json({ error: 'Prompt is required' });
 
+    // Set explicit timeouts to handle long AI processing
+    req.setTimeout(SERVER_TIMEOUT);
+    res.setTimeout(SERVER_TIMEOUT);
+
     try {
         const response = await ollama.chat({
             model: MODEL_NAME,
             messages: [{ role: 'user', content: prompt }],
         });
-        res.json({ reply: response.message.content });
+        console.log("AI: ", response);
+        console.log("AI message: ", response.message.content);
+        res.json({ reply: (response.message.content) });
+        // res.json({ reply: marked.parse(response.message.content) });
     } catch (error) {
         console.error('Ollama Error:', error);
         res.status(500).json({ error: 'Failed to communicate with local model.' });
@@ -162,6 +170,10 @@ app.post('/api/chat', apiKeyAuth, async (req, res) => {
 app.post('/api/chat/stream', async (req, res) => {
     const { prompt } = req.body;
     if (!prompt) return res.status(400).json({ error: 'Prompt is required' });
+
+    // Set explicit timeouts for streaming responses
+    req.setTimeout(SERVER_TIMEOUT);
+    res.setTimeout(SERVER_TIMEOUT);
 
     try {
         res.setHeader('Content-Type', 'text/event-stream');
