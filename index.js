@@ -6,6 +6,7 @@ import swaggerJsdoc from 'swagger-jsdoc';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import bodyParser from 'body-parser';
+import { apiKeyAuth } from './app/middleware/apiKeyAuth.js';
 
 dotenv.config();
 
@@ -44,6 +45,16 @@ const swaggerOptions = {
             //     description: 'Local development server',
             // },
         ],
+        components: {
+            securitySchemes: {
+                ApiKeyAuth: {
+                    type: 'apiKey',
+                    in: 'header',
+                    name: 'x-api-key',
+                },
+            },
+        },
+        security: [{ ApiKeyAuth: [] }],
     },
     // Path to the API docs (where your JSDoc comments are located)
     apis: ['./index.js'],
@@ -92,7 +103,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
  *       500:
  *         description: Local model connection failure
  */
-app.post('/api/chat', async (req, res) => {
+app.post('/api/chat', apiKeyAuth, async (req, res) => {
     const { prompt } = req.body;
     if (!prompt) return res.status(400).json({ error: 'Prompt is required' });
 
