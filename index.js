@@ -127,7 +127,7 @@ io.on('connection', (socket) => {
     console.log(`[Socket] Client connected: ${socket.id}`);
 
     socket.on('chat-message', async (data) => {
-        const { prompt } = data;
+        const { prompt, history } = data;
         if (!prompt) {
             socket.emit('chat-error', { error: 'Prompt is required' });
             return;
@@ -138,10 +138,17 @@ io.on('connection', (socket) => {
         let startTime = Date.now();
         let fullResponse = '';
 
+        // Compile messages array including previous conversation context
+        const messagesToSend = [];
+        if (history && Array.isArray(history)) {
+            messagesToSend.push(...history);
+        }
+        messagesToSend.push({ role: 'user', content: prompt });
+
         try {
             const responseStream = await ollama.chat({
                 model: MODEL_NAME,
-                messages: [{ role: 'user', content: prompt }],
+                messages: messagesToSend,
                 stream: true
             });
 
