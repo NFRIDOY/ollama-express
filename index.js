@@ -199,6 +199,7 @@ app.post('/api/chat/stream', async (req, res) => {
     req.setTimeout(SERVER_TIMEOUT);
     res.setTimeout(SERVER_TIMEOUT);
 
+
     try {
         res.setHeader('Content-Type', 'text/event-stream');
         res.setHeader('Cache-Control', 'no-cache');
@@ -210,10 +211,14 @@ app.post('/api/chat/stream', async (req, res) => {
             stream: true
         });
 
+        console.log("Streaming data chunk: ");
         for await (const chunk of responseStream) {
+            console.log("." + chunk.message.content);
             res.write(chunk.message.content);
         }
+        console.log("responseStream", responseStream);
         res.end();
+        console.log("res: ", res);
     } catch (error) {
         console.error('Ollama Streaming Error:', error);
         res.status(500).write('Error occurred during stream generation.');
