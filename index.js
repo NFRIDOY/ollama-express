@@ -15,6 +15,8 @@ const PORT = process.env.PORT || 9000;
 const SERVER_TIMEOUT = 120000; // 120 seconds for long AI responses
 
 const allowedOrigins = [
+    'http://localhost:9050',
+    'https://localhost:9050',
     'http://localhost:3000',
     'https://localhost:3000',
     'https://h1qxq8l0-9000.asse.devtunnels.ms'
