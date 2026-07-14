@@ -1,4 +1,6 @@
 import express from 'express';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
 // import ollama from 'ollama';
 import { Ollama } from 'ollama';
 import swaggerUi from 'swagger-ui-express';
@@ -38,6 +40,15 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'x-api-key'],
     credentials: true
 }));
+
+const server = createServer(app);
+const io = new Server(server, {
+    cors: {
+        origin: allowedOrigins,
+        methods: ['GET', 'POST'],
+        credentials: true
+    }
+});
 
 app.use(bodyParser.json());
 
@@ -100,6 +111,59 @@ const swaggerDocs = swaggerJsdoc(swaggerOptions);
 // Serve Swagger UI documentation at /api-docs endpoint
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
+// --- Socket.io Setup ---
+
+// Socket.io connection authorization middleware
+io.use((socket, next) => {
+    const apiKey = socket.handshake.auth?.token || socket.handshake.headers['x-api-key'];
+    if (!process.env.API_KEY || apiKey === process.env.API_KEY) {
+        return next();
+    }
+    console.warn(`[Socket] Connection rejected: unauthorized key from socket ${socket.id}`);
+    return next(new Error('Unauthorized: Invalid API key'));
+});
+
+io.on('connection', (socket) => {
+    console.log(`[Socket] Client connected: ${socket.id}`);
+
+    socket.on('chat-message', async (data) => {
+        const { prompt } = data;
+        if (!prompt) {
+            socket.emit('chat-error', { error: 'Prompt is required' });
+            return;
+        }
+
+        console.log(`[Socket] Received prompt from ${socket.id}: "${prompt}"`);
+        socket.emit('chat-start');
+        let startTime = Date.now();
+        let fullResponse = '';
+
+        try {
+            const responseStream = await ollama.chat({
+                model: MODEL_NAME,
+                messages: [{ role: 'user', content: prompt }],
+                stream: true
+            });
+
+            for await (const chunk of responseStream) {
+                const content = chunk.message.content;
+                fullResponse += content;
+                socket.emit('chat-chunk', { text: content });
+            }
+
+            let duration = (Date.now() - startTime) / 1000;
+            console.log(`[Socket] Finished response to ${socket.id} in ${duration}s`);
+            socket.emit('chat-end', { duration, reply: fullResponse });
+        } catch (error) {
+            console.error('[Socket] Ollama Streaming Error:', error);
+            socket.emit('chat-error', { error: 'Failed to generate response from model.' });
+        }
+    });
+
+    socket.on('disconnect', () => {
+        console.log(`[Socket] Client disconnected: ${socket.id}`);
+    });
+});
 
 // --- API Endpoints with Swagger JSDoc ---
 
@@ -282,7 +346,7 @@ async function ensureModelExists() {
     }
 }
 
-app.listen(PORT, async () => {
+server.listen(PORT, async () => {
     console.log(`Server running on http://localhost:${PORT}`);
     console.log(`API Documentation available at http://localhost:${PORT}/api-docs`);
     await ensureModelExists();
