@@ -14,10 +14,23 @@ const app = express();
 const PORT = process.env.PORT || 9000;
 
 app.use(cors({
-    origin: '*', // allow all origins
+    // origin: '*', // allow all origins
+    origin: [
+        '*',
+        'http://localhost:3000',
+        'https://h1qxq8l0-9000.asse.devtunnels.ms'
+    ],
     methods: ['GET', 'POST', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'x-api-key']
 }));
+
+app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "http://localhost:3000");
+    res.header("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Content-Type, x-api-key");
+    if (req.method === "OPTIONS") return res.sendStatus(204);
+    next();
+});
 
 app.use(bodyParser.json());
 

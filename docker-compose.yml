@@ -12,3 +12,6 @@ services:
       # if it's running on docker and we want to use it as a service
       # - OLLAMA_HOST=http://ollama-service:11434
       - MODEL_NAME=gemma4
+    env_file:
+      - .env
+    restart: unless-stopped
